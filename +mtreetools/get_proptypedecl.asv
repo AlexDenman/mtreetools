@@ -1,0 +1,86 @@
+function [arg] = get_proptypedecl(node)
+%%
+arguments (Input)
+	node	mtree	{mtreetools.mustBeNodeKind(node,"PROPTYPEDECL")}
+end
+arguments (Output)
+	arg (1,1)	struct
+end
+
+%%
+
+arg = struct(...
+	argname		= string(node.VarName.stringval), ...
+	kwname		= string(node.VarNamedField.stringvals), ...
+	iskwarg		= ~node.VarNamedField.isempty, ...
+	isclassarg	= ~node.VarNamedClass.isempty, ...
+	classname	= string(node.VarNamedClass.stringvals), ...
+	type		= string(node.VarType.stringvals) ...
+	);
+
+dim_nodes = node.R.R.L.Full;
+arg.dims = double(string(dim_nodes.stringvals));
+arg.dims(dim_nodes.kinds=="COLON") = Inf;
+
+%% Validators
+
+node = node.R.R.R.L;
+if ~node.isempty
+	num_validators = mtreetools.pathlength(node,"X",includefirst=1);
+else
+	num_validators = 0;
+end
+
+
+arg.validators = struct(...
+	validator=cell(num_validators,1), ...
+	val_args=cell(num_validators,1), ...
+	str=cell(num_validators,1));
+
+for ii = 1:num_validators
+	arg.validators(ii).str = string(node.tree2str);
+	if all(ismember(node.kinds,["DOT","FIELD","ID"])) % just a function name
+		arg.validators(ii).validator = arg.validators(ii).str;
+	elseif node.iskind("LP")
+		arg.validators(ii).validator = string(node.L.tree2str);
+
+		val_arg = node.R;
+		num_val_inputs = mtreetools.pathlength(val_arg,"X",includefirst=1);
+		arg.validators(ii).val_args = cell(1,num_val_inputs);
+		
+		for jj = 1:num_val_inputs
+			vals = {
+				string(val_arg.Tree.kinds)
+				string(val_arg.Tree.stringvals)
+				};
+			ismember(vals{1},["ID","STRING","INT","DOUBLE","CHARVECTOR"]);
+			if val_arg.iskind("LB")
+			% valid_vals~ismember(string(vals.kinds),["LB" "LC" "ROW"]);
+			% val_input_values = string(val_arg.Tree.stirngvals);
+			% val_input_kinds = string(val_arg.Tree.kinds);
+			% val_input_type = intersect( ...
+			% 	val_input_kinds, ...
+			% 	["ID","STRING","INT","DOUBLE","CHARVECTOR"] ...
+			% 	);
+			% if val_input_type=="DOUBLE" || val_input_type=="INT"
+			% 	val_input_values = double(val_input_values);
+			% end
+			% val_input_values = val_input_values(
+				
+			% else
+			% end
+			val_input_kinds = string(val_arg.Tree.kinds);
+			% val_input_strings = , val_arg.Tree.stringvals]);
+			val_input = val_input(ismember(val_input(:,1), ["ID","STRING","INT","DOUBLE","CHARVECTOR"]),:);
+			arg.validators(ii).val_args{jj} = val_input(:,2);
+			val_arg = val_arg.X;
+		end
+	else
+		error("Have not yet encountered this possibility but I'm not certain it doesn't exist")
+	end
+
+	node = node.X;
+end
+
+%%
+end
