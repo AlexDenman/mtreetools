@@ -4,7 +4,7 @@ arguments
 	direction			(1,1)	string	{mustBeMember(direction,["L","R","X","P","PARENT","NEXT"])}
 	opts.doCount		(1,:)	string
 	opts.dontCount		(1,:)	string	= ["COMMENT"]
-	opts.includeFirst	(1,1)	logical	= 0
+	opts.includeFirst	(1,1)	logical	= 1
 end
 import mtreetools.validators.*
 

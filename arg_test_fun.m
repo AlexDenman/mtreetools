@@ -17,7 +17,7 @@ arguments
 						variabletypes=["int32","int32","int32","int32"], ...
 						variablenames=["frame","row","col","offset"] ...
 						)
-	G.foo	(:,:,:)	char = char(randi(127,5,5,5))
+	G.foo	(:,:,:)	char = char(randi(127,5,5,5)) + numel(D)
 end
 
 arguments (Output)
