@@ -1,7 +1,7 @@
 function [funcName,funcInputs,funcOutputs,funcType] = parse_function_node(node)
 %%
 arguments (Input)
-	node	mtree	{mtreetools.mustBeNodeKind(node,"FUNCTION")}
+	node	mtree	{mustBeNodeKind(node,"FUNCTION")}
 end
 
 arguments (Output)
@@ -10,6 +10,7 @@ arguments (Output)
 	funcOutputs	(1,:)	string
 	funcType	(1,1)	string
 end
+import mtreetools.validators.*
 %%
 
 funcName = string(node.Fname.stringval);

@@ -1,11 +1,12 @@
 function len = pathlength(node,direction,opts)
 arguments
-	node				mtree	{mtreetools.mustBeSingleNode}
-	direction			(1,1)	char	{mustBeMember(direction,'LPRX')}
+	node				mtree	{mustBeSingleNode}
+	direction			(1,1)	string	{mustBeMember(direction,["L","R","X","P","PARENT","NEXT"])}
 	opts.doCount		(1,:)	string
 	opts.dontCount		(1,:)	string	= ["COMMENT"]
 	opts.includeFirst	(1,1)	logical	= 0
 end
+import mtreetools.validators.*
 
 len = 0;
 if ~opts.includeFirst

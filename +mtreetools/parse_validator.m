@@ -1,12 +1,12 @@
 function [val] = parse_validator(node)
 %%
 arguments (Input)
-	node	mtree	{mtreetools.mustBeNodeKind(node,["DOT","ID","LP"])}
+	node	mtree	{mustBeNodeKind(node,["DOT","ID","LP"])}
 end
 arguments (Output)
 	val (1,1)	struct
 end
-
+import mtreetools.validators.*
 %%
 
 % initializing output struct

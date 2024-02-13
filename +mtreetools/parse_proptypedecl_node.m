@@ -1,12 +1,12 @@
 function [arg] = parse_proptypedecl_node(node)
 %%
 arguments (Input)
-	node	mtree	{mtreetools.mustBeNodeKind(node,"PROPTYPEDECL")}
+	node	mtree	{mustBeNodeKind(node,"PROPTYPEDECL")}
 end
 arguments (Output)
 	arg (1,1)	struct
 end
-
+import mtreetools.validators.*
 %%
 
 arg = struct(...
