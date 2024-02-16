@@ -1,12 +1,12 @@
 function [input_args, output_args] = parse_arguments_nodes(argblocks,varnames)
-%%
+%% In: mtree from classdef file; out: [input_args, output_args], both Nx1 struct arrays
 arguments (Input)
 	argblocks	mtree	{mustBeNodeKind(argblocks,"ARGUMENTS")}
 	varnames	(:,1)	string
 end
 arguments (Output)
-	input_args	(1,:)	struct
-	output_args	(1,:)	struct
+	input_args	(:,1)	struct
+	output_args	(:,1)	struct
 end
 import mtreetools.validators.*
 %%
@@ -22,9 +22,11 @@ for ii = argblocks.indices
 	arg = block.R;
 	while ~arg.isempty
 		if arg.iskind("ARGUMENT")
+			proptypedecl = mtreetools.parse_proptypedecl_node(arg.L);
 			current_arg = struct(...
+				name = proptypedecl.argname, ...
 				is_repeating = is_repeating, ...
-				definition = mtreetools.parse_proptypedecl_node(arg.L), ...				
+				definition = proptypedecl, ...				
 				default = mtreetools.parse_default_value(arg.R,varnames) ...
 				);	
 			if is_input
