@@ -1,50 +1,53 @@
-function [hasdefault,str,def] = parse_default_value(node)
-%%
+function [default] = parse_default_value(defnode,varnames)
+%% In: default value node (R of argument or property node); out: struct (field 'kind' = "none" if no default)
 arguments (Input)
-	node	mtree	{mustBeSingleNode,mustBeNodeKind(node,["ARGUMENT","EQUALS"])}
+	defnode		mtree	{mustBeSingleNodeOrEmpty}
+	varnames	(:,1)	string
 end
 arguments (Output)
-	hasdefault	(1,1)	logical
-	str			string	{mustBeScalarOrEmpty}
-	def					function_handle
+	default		(1,1)	struct
 end
 import mtreetools.validators.*
-%%
 
-%{
-Not currently implemented: Detecting if default is a simple expression like
-string(missing) and if so just returning the value itself. If the
-expression is not detected as using any other inputs as arguments (below),
-then one option is to just evaluate the resulting function handle, but this
-leaves the possibility that the default value expression could contain
-arbitrary function calls with unknown side effects, so I didn't do that.
+%% Return early or initialize output struct
 
-def_node_kinds = unique(string(defnode.Tree.kinds));
-<unfinished>
-%}
-
-%%
-defnode = node.R;
-hasdefault = ~defnode.isempty;
-if ~hasdefault
-	str = string.empty;
-	def = function_handle.empty;
+if defnode.isempty
+	default = struct(kind="none");
 	return
-end
-
-
-funcnode = mtreetools.findfirst(defnode,"P",["FUNCTION","PROPERTIES"]);
-if funcnode.iskind("FUNCTION")
-	arg_ids = string(mtreetools.findall(funcnode.Ins,"X").stringvals);
-	arg_ids = arg_ids(1:find(arg_ids==defnode.P.L.L.L.stringval)-1);
-	ids_in_default = string(defnode.Tree.mtfind(Kind="ID").stringvals);
-	arg_ids = intersect(arg_ids,ids_in_default);
 else
-	arg_ids = strings(1,0);
+	default = struct(kind=missing,str = string(defnode.tree2str));
 end
 
-str = string(defnode.tree2str);
-def = str2func(compose("@(%s) %s", strjoin(arg_ids,","), str));
+%% Detect what variables, if any, are used in the default value expression
+
+if ~isempty(varnames)
+	ids_in_default = string(defnode.Tree.mtfind(Kind="ID").stringvals);
+	default.depends_on = intersect(varnames,ids_in_default);
+else
+	default.depends_on = strings(1,0);
+end
+
+default.expression = str2func(compose("@(%s) %s", strjoin(default.depends_on,","), default.str));
+
+%% Determine type of expression
+if ~isempty(default.depends_on)
+	default.kind = "dependent";
+elseif false %TODO: Set conditions for considering a default expression to be too complex to evaluate
+	default.kind = "complex";
+else
+	default.kind = "simple";
+end
+
+%% If default has simple value, evaluate the expression
+
+if default.kind == "simple"
+	default.value = default.expression();
+	default.hasvalue = true;
+else
+	default.hasvalue = false;
+end
+
+
 
 %%
 end
